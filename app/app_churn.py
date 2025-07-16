@@ -27,6 +27,7 @@ def carregar_modelo():
 model, model_columns, model_date = carregar_modelo()
 
 # --- Barra Lateral (Sidebar) ---
+# Esta é a parte que cria a barra lateral com a data de atualização
 st.sidebar.title("Sobre o Modelo")
 if model_date:
     st.sidebar.info(f"Modelo treinado em: \n**{model_date}**")
@@ -62,7 +63,6 @@ if model is not None:
 
     # --- Lógica de Previsão ---
     if st.button("Prever Churn", type="primary"):
-        # ... (código da previsão continua o mesmo) ...
         input_dict = {
             'gender': [gender], 'SeniorCitizen': [1 if senior_citizen == 'Yes' else 0],
             'Partner': [partner], 'Dependents': [dependents], 'tenure': [tenure],
