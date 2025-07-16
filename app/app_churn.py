@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 import os
+from datetime import datetime
 
 # --- Configuração da Página ---
 st.set_page_config(page_title="Previsor de Churn Telco", layout="wide")
@@ -13,12 +14,22 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), 'modelo.pkl')
 def carregar_modelo():
     try:
         data = joblib.load(MODEL_PATH)
-        return data['model'], data['columns']
+        
+        # Pega a data de modificação do arquivo do modelo
+        mod_time = os.path.getmtime(MODEL_PATH)
+        model_date = datetime.fromtimestamp(mod_time).strftime('%d/%m/%Y às %H:%M:%S')
+
+        return data['model'], data['columns'], model_date
     except FileNotFoundError:
         st.error("Arquivo do modelo não encontrado. Execute o pipeline de treinamento primeiro.")
-        return None, None
+        return None, None, None
 
-model, model_columns = carregar_modelo()
+model, model_columns, model_date = carregar_modelo()
+
+# --- Barra Lateral (Sidebar) ---
+st.sidebar.title("Sobre o Modelo")
+if model_date:
+    st.sidebar.info(f"Modelo treinado em: \n**{model_date}**")
 
 # --- Interface da Aplicação ---
 st.title("Previsão de Churn de Clientes (Dataset Kaggle)")
@@ -51,39 +62,21 @@ if model is not None:
 
     # --- Lógica de Previsão ---
     if st.button("Prever Churn", type="primary"):
-        # Criar um DataFrame com uma única linha para os dados de entrada
+        # ... (código da previsão continua o mesmo) ...
         input_dict = {
-            'gender': [gender],
-            'SeniorCitizen': [1 if senior_citizen == 'Yes' else 0],
-            'Partner': [partner],
-            'Dependents': [dependents],
-            'tenure': [tenure],
-            'PhoneService': [phone_service],
-            'PaperlessBilling': [paperless_billing],
-            'MonthlyCharges': [monthly_charges],
-            'TotalCharges': [total_charges],
-            'InternetService': [internet_service],
-            'Contract': [contract],
+            'gender': [gender], 'SeniorCitizen': [1 if senior_citizen == 'Yes' else 0],
+            'Partner': [partner], 'Dependents': [dependents], 'tenure': [tenure],
+            'PhoneService': [phone_service], 'PaperlessBilling': [paperless_billing],
+            'MonthlyCharges': [monthly_charges], 'TotalCharges': [total_charges],
+            'InternetService': [internet_service], 'Contract': [contract],
             'PaymentMethod': [payment_method]
         }
-        
-        # O modelo precisa de mais algumas colunas que não estão na UI
-        # Vamos criar um DataFrame completo com valores padrão e depois preencher
-        df_input = pd.DataFrame(columns=model_columns)
-        df_input.loc[0] = 0 # Preenche tudo com 0 por padrão
-
-        # Transforma os dados de entrada em dummies e preenche no DataFrame
-        temp_df = pd.DataFrame(input_dict)
-        temp_df = pd.get_dummies(temp_df, drop_first=True)
-
+        df_input = pd.DataFrame(columns=model_columns); df_input.loc[0] = 0
+        temp_df = pd.DataFrame(input_dict); temp_df = pd.get_dummies(temp_df, drop_first=True)
         for col in temp_df.columns:
             if col in df_input.columns:
                 df_input[col] = temp_df[col]
-        
-        # Previsão
-        prediction = model.predict(df_input)
-        prediction_proba = model.predict_proba(df_input)
-
+        prediction = model.predict(df_input); prediction_proba = model.predict_proba(df_input)
         st.write("---")
         st.header("Resultado da Previsão")
         if prediction[0] == 1:
