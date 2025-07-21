@@ -81,7 +81,7 @@ def tarefa_git_push():
         repo.git.add(all=True)
         
         # Cria uma mensagem de commit com data e hora
-        commit_message = f"Atualização geral do projeto via pipeline - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        commit_message = f"Atualização do projeto via pipeline - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         
         if repo.is_dirty(untracked_files=True):
             repo.index.commit(commit_message)
