@@ -61,7 +61,7 @@ def tarefa_treinamento():
         return False
 
 def tarefa_git_push():
-    """Adiciona, commita e envia o novo modelo para a URL do GitHub definida no código."""
+    """Adiciona, commita e envia TODAS as alterações do projeto para a URL do GitHub definida no código."""
     print("\n--- INICIANDO TAREFA DE DEPLOY NO GITHUB ---")
     try:
         repo = git.Repo(PROJECT_ROOT)
@@ -76,11 +76,12 @@ def tarefa_git_push():
             origin = repo.create_remote('origin', GITHUB_REPO_URL)
             print(f"Repositório remoto 'origin' criado para: {GITHUB_REPO_URL}")
         
-        # Adiciona o novo modelo ao staging
-        repo.index.add([os.path.join(PROJECT_ROOT, 'app', 'modelo.pkl')])
+        # --- MUDANÇA PRINCIPAL AQUI ---
+        # Adiciona TODAS as alterações (novos arquivos, modificações, exclusões) ao staging
+        repo.git.add(all=True)
         
         # Cria uma mensagem de commit com data e hora
-        commit_message = f"Atualiza modelo de ML via pipeline - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        commit_message = f"Atualização geral do projeto via pipeline - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         
         if repo.is_dirty(untracked_files=True):
             repo.index.commit(commit_message)
@@ -90,7 +91,7 @@ def tarefa_git_push():
             print("Push para o GitHub realizado com sucesso!")
             print("--- TAREFA DE DEPLOY NO GITHUB CONCLUÍDA ---")
         else:
-            print("Nenhuma alteração no modelo para commitar. Deploy não necessário.")
+            print("Nenhuma alteração no projeto para commitar. Deploy não necessário.")
 
     except Exception as e:
         print(f"Erro durante o deploy no GitHub: {e}")
